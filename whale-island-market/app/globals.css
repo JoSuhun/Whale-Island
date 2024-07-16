@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  a {
+    @apply text-blue-500;
+  }
+}
+
+.btn {
+  @apply size-10 bg-purple-400 rounded-super-nice-radius;
+}
+
