@@ -4,11 +4,14 @@
 
 @layer base {
   a {
-    @apply text-blue-500;
+    @apply text-blue-300;
   }
 }
 
-.btn {
-  @apply size-10 bg-purple-400 rounded-super-nice-radius;
+@layer components {
+  .primary-btn {
+    @apply w-full bg-blue-500 text-white font-medium
+    rounded-md text-center hover:bg-blue-400 transition-colors;
+  }
 }
 
