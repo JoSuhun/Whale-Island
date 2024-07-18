@@ -1,26 +1,32 @@
+'use client';
+
 import FormInput from '@/components/form-input';
 import FormButton from '@/components/form-btn';
 import SocialLogin from '../../components/social-login';
+import { useFormState } from 'react-dom';
+import { handleForm } from './actions';
 
-export default function CreateAccount() {
+export default function Login() {
+  // server action
+
+  const [state, action] = useFormState(
+    handleForm,
+    // initial state
+    null,
+  );
+
   return (
     <div className="flex flex-col gap-10 py-8 px-6">
       <div className="flex flex-col gap-2 *:font-medium">
         <h1 className="text-2xl">안녕하세요!</h1>
         <h2 className="text-xl">
-          회원가입을 도와드릴게요
+          반갑습니다 회원님
         </h2>
       </div>
-      <form className="flex flex-col gap-3">
-        <FormInput
-          name="name"
-          type="text"
-          placeholder="이름"
-          required
-          errors={[
-            '유효한 값을 입력하세요! (한 글자 이상)',
-          ]}
-        />
+      <form
+        action={action}
+        className="flex flex-col gap-3"
+      >
         <FormInput
           name="email"
           type="email"
@@ -33,19 +39,9 @@ export default function CreateAccount() {
           type="password"
           placeholder="비밀번호"
           required
-          errors={[]}
+          errors={state?.errors ?? []}
         />
-        <FormInput
-          name="password2"
-          type="password"
-          placeholder="비밀번호 확인"
-          required
-          errors={[]}
-        />
-        <FormButton
-          loading={false}
-          text="회원가입하기"
-        />
+        <FormButton text="로그인" />
       </form>
       <SocialLogin />
     </div>

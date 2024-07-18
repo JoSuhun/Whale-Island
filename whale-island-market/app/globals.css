@@ -4,14 +4,14 @@
 
 @layer base {
   a {
-    @apply text-blue-300;
+    @apply text-green-500;
   }
 }
 
 @layer components {
   .primary-btn {
-    @apply w-full bg-blue-500 text-white font-medium
-    rounded-md text-center hover:bg-blue-400 transition-colors;
+    @apply w-full bg-green-700 text-white font-medium
+    rounded-md text-center hover:bg-green-600 transition-colors;
   }
 }
 
