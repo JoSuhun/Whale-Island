@@ -1,10 +1,12 @@
 'use server';
 import { z } from 'zod';
+import bcrypt from 'bcrypt';
 import {
   PASSWORD_MIN_LENGTH,
   PASSWORD_REGEX,
   PASSWORD_REGEX_ERROR,
 } from '../../lib/constants';
+import db from '../../lib/db';
 
 const checkPassword = ({
   password,
@@ -14,6 +16,30 @@ const checkPassword = ({
   confirm_password: string;
 }) => password === confirm_password;
 
+const checkUniqueUsername = async (username: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      username,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(user);
+};
+
+const checkUniqueEmail = async (email: string) => {
+  const userEmail = await db.user.findUnique({
+    where: {
+      email,
+    },
+    select: {
+      id: true,
+    },
+  });
+  return !Boolean(userEmail);
+};
+
 const formSchema = z
   .object({
     username: z
@@ -22,11 +48,19 @@ const formSchema = z
           '이름은 문자로만 설정할 수 있어요',
         required_error: '이름을 설정해주세요',
       })
-      .trim(),
+      .trim()
+      .refine(
+        checkUniqueUsername,
+        '이미 사용중인 이름이에요!',
+      ),
     email: z
       .string()
       .email('이메일을 확인해주세요.')
-      .toLowerCase(),
+      .toLowerCase()
+      .refine(
+        checkUniqueEmail,
+        '이미 사용중인 이메일이에요!',
+      ),
     password: z
       .string()
       .min(
@@ -56,11 +90,27 @@ export async function createAccount(
     password: formData.get('password'),
     confirm_password: formData.get('confirm_password'),
   };
-  const result = formSchema.safeParse(data);
+
+  const result = await formSchema.safeParseAsync(data);
+
   if (!result.success) {
     return result.error.flatten();
   } else {
-    console.log(result.data);
+    const hashedPassword = await bcrypt.hash(
+      result.data.password,
+      12,
+    );
+    const user = await db.user.create({
+      data: {
+        username: result.data.username,
+        email: result.data.email,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+      },
+    });
+    console.log(user);
   }
 }
 
