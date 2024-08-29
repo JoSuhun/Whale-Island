@@ -7,6 +7,8 @@ import {
   PASSWORD_REGEX_ERROR,
 } from '../../lib/constants';
 import db from '../../lib/db';
+import { redirect } from 'next/navigation';
+import getSession from '../../lib/session';
 
 const checkPassword = ({
   password,
@@ -16,30 +18,6 @@ const checkPassword = ({
   confirm_password: string;
 }) => password === confirm_password;
 
-const checkUniqueUsername = async (username: string) => {
-  const user = await db.user.findUnique({
-    where: {
-      username,
-    },
-    select: {
-      id: true,
-    },
-  });
-  return !Boolean(user);
-};
-
-const checkUniqueEmail = async (email: string) => {
-  const userEmail = await db.user.findUnique({
-    where: {
-      email,
-    },
-    select: {
-      id: true,
-    },
-  });
-  return !Boolean(userEmail);
-};
-
 const formSchema = z
   .object({
     username: z
@@ -48,19 +26,11 @@ const formSchema = z
           '이름은 문자로만 설정할 수 있어요',
         required_error: '이름을 설정해주세요',
       })
-      .trim()
-      .refine(
-        checkUniqueUsername,
-        '이미 사용중인 이름이에요!',
-      ),
+      .trim(),
     email: z
       .string()
       .email('이메일을 확인해주세요.')
-      .toLowerCase()
-      .refine(
-        checkUniqueEmail,
-        '이미 사용중인 이메일이에요!',
-      ),
+      .toLowerCase(),
     password: z
       .string()
       .min(
@@ -74,6 +44,44 @@ const formSchema = z
         PASSWORD_MIN_LENGTH,
         '최소 8글자 이상으로 설정해주세요',
       ),
+  })
+  .superRefine(async ({ username }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        username,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '사용중인 이름입니다! 새로 만들어주세요',
+        path: ['username'],
+        fatal: true,
+      });
+      return z.NEVER;
+    }
+  })
+  .superRefine(async ({ email }, ctx) => {
+    const user = await db.user.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (user) {
+      ctx.addIssue({
+        code: 'custom',
+        message: '사용중인 이메일입니다!',
+        path: ['email'],
+        fatal: true,
+      });
+      return z.NEVER;
+    }
   })
   .refine(checkPassword, {
     message: '비밀번호가 일치하지 않아요',
@@ -94,6 +102,7 @@ export async function createAccount(
   const result = await formSchema.safeParseAsync(data);
 
   if (!result.success) {
+    console.log(result.error.flatten());
     return result.error.flatten();
   } else {
     const hashedPassword = await bcrypt.hash(
@@ -110,7 +119,12 @@ export async function createAccount(
         id: true,
       },
     });
-    console.log(user);
+    const session = await getSession();
+    session.id = user.id;
+
+    await session.save();
+
+    redirect('/profile');
   }
 }
 
