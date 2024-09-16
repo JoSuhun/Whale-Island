@@ -1,10 +1,12 @@
 'use server';
 
+import twilio from 'twilio';
 import crypto from 'crypto';
 import { z } from 'zod';
 import validator from 'validator';
 import { redirect } from 'next/navigation';
 import db from '../../lib/db';
+import getSession from '../../lib/session';
 
 const phoneSchema = z
   .string()
@@ -14,10 +16,23 @@ const phoneSchema = z
     '전화번호 형식을 확인해주세요!',
   );
 
+async function tokenExists(token: number) {
+  const exists = await db.sMSToken.findUnique({
+    where: {
+      token: token.toString(),
+    },
+    select: {
+      id: true,
+    },
+  });
+  return Boolean(exists);
+}
+
 const tokenSchema = z.coerce
   .number()
   .min(100000)
-  .max(999999);
+  .max(999999)
+  .refine(tokenExists, '인증번호가 유효하지 않아요');
 
 interface ActionState {
   token: boolean;
@@ -79,19 +94,48 @@ export const smsLogin = async (
           },
         },
       });
+      const client = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN,
+      );
+      await client.messages.create({
+        body: `고래섬 로그인 인증코드 : ${token}`,
+        from: process.env.TWILIO_PHONE_NUMBER!,
+        to: process.env.TWILIO_MY_PHONE_NUMBER!,
+      });
       return {
         token: true,
       };
     }
   } else {
-    const result = tokenSchema.safeParse(token);
+    const result = await tokenSchema.safeParseAsync(token);
     if (!result.success) {
       return {
         token: true,
         error: result.error.flatten(),
       };
     } else {
-      redirect('/');
+      // token의 userId 가져오기
+      const token = await db.sMSToken.findUnique({
+        where: {
+          token: result.data.toString(),
+        },
+        select: {
+          id: true,
+          userId: true,
+        },
+      });
+      if (token) {
+        const session = await getSession();
+        session.id = token.userId;
+        await session.save();
+        await db.sMSToken.delete({
+          where: {
+            id: token.id,
+          },
+        });
+      }
+      redirect('/profile');
     }
   }
 };
