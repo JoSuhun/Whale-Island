@@ -20,7 +20,7 @@ import { usePathname } from 'next/navigation';
 export default function TabBar() {
   const pathname = usePathname();
   return (
-    <div className="fixed bottom-0 w-full mx-auto max-w-screen-md grid grid-cols-5 border-neutral-600 border-t px-5 py-3 *:text-green-800">
+    <div className="fixed bottom-0 w-full mx-auto max-w-screen-md grid grid-cols-5 border-neutral-400 bg-neutral-50 border-t px-5 py-3 *:text-green-800">
       <Link
         href="/products"
         className="flex flex-col items-center gap-px"
@@ -74,7 +74,7 @@ export default function TabBar() {
         ) : (
           <OutlineUserIcon className="w-7 h-7" />
         )}
-        <span>나의 당근</span>
+        <span>나의 고래섬</span>
       </Link>
     </div>
   );
