@@ -64,7 +64,7 @@ export default async function ProductDetail({
         />
       </div>
       <div className="p-5 flex items-center gap-3 border-b border-neutral-700">
-        <div className="size-10 rounded-full">
+        <div className="size-10 overflow-hidden rounded-full">
           {product.user.avatar !== null ? (
             <Image
               src={product.user.avatar}
@@ -86,7 +86,7 @@ export default async function ProductDetail({
         </h1>
         <p>{product.description}</p>
       </div>
-      <div className="fixed w-full bottom-0 left-0 p-5 pb-8 bg-neutral-400 flex justify-between items-center">
+      <div className="fixed w-full bottom-0 left-0 p-5 pb-8 bg-neutral-400 bg-opacity-50 backdrop-blur-md flex justify-between items-center">
         <span className="font-semibold text-xl">
           {formatToWon(product.price)}원
         </span>
