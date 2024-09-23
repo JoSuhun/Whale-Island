@@ -61,6 +61,7 @@ export default async function ProductDetail({
           fill
           src={product.photo}
           alt={product.title}
+          className="object-cover"
         />
       </div>
       <div className="p-5 flex items-center gap-3 border-b border-neutral-700">
