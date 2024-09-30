@@ -51,7 +51,7 @@ export default async function ProductDetail({
         id,
       },
     });
-    redirect('/products');
+    redirect('/home');
   };
 
   return (
