@@ -20,7 +20,7 @@ import { usePathname } from 'next/navigation';
 export default function TabBar() {
   const pathname = usePathname();
   return (
-    <div className="fixed bottom-0 w-full mx-auto max-w-screen-sm grid grid-cols-5 border-neutral-400 bg-neutral-50 border-t px-5 py-3 *:text-green-800">
+    <div className="fixed z-50 bottom-0 w-full mx-auto max-w-screen-sm grid grid-cols-5 border-neutral-400 bg-neutral-50 border-t px-5 py-3 *:text-green-800">
       <Link
         href="/home"
         className="flex flex-col items-center gap-px"

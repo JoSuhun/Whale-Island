@@ -35,10 +35,13 @@ export default async function Modal({
   return (
     <Link
       href={`/products/${id}`}
-      className="max-w-screen-sm w-full h-1/2 flex justify-center items-center
-    cursor-pointer"
+      className="fixed w-full h-screen
+       flex items-center justify-center bg-black bg-opacity-60 left-0 top-0"
     >
-      <div className="fixed bottom-14 max-w-screen-sm bg-white rounded-lg shadow-lg w-full h-auto p-6 pb-10">
+      <div
+        className="fixed bottom-12 max-w-screen-sm bg-neutral-50 rounded-lg shadow-lg
+       h-1/2 w-full p-6 pb-10"
+      >
         <CloseBtn />
         <h2 className="text-xl font-bold text-neutral-800 mb-4 border-b pb-2">
           상품 더보기

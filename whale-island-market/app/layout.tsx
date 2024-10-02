@@ -8,7 +8,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: '$s | Whale Island Market',
+    template: '%s | Whale Island Market',
     default: 'Whale Island Market',
   },
   description: 'Sell & Buy all the things!',
