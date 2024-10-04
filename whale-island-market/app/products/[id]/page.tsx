@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { formatToWon } from '../../../lib/utils';
 import { UserIcon } from '@heroicons/react/24/solid';
 import Image from 'next/image';
+import { unstable_cache as nextCache } from 'next/cache';
 
 async function getIsOwner(userId: number) {
-  const session = await getSession();
-  if (session.id) {
-    return session.id === userId;
-  }
+  // const session = await getSession();
+  // if (session.id) {
+  //   return session.id === userId;
+  // }
   return false;
 }
 
@@ -31,12 +32,38 @@ async function getProduct(id: number) {
   return product;
 }
 
+const getCachedProduct = nextCache(
+  getProduct,
+  ['product-detail'],
+  { tags: ['product-detail'] },
+);
+
+async function getProductTitle(id: number) {
+  const product = await db.product.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      title: true,
+    },
+  });
+  return product;
+}
+
+const getCachedProductTitle = nextCache(
+  getProductTitle,
+  ['product-title'],
+  { tags: ['product-title'] },
+);
+
 export async function generateMetadata({
   params,
 }: {
   params: { id: string };
 }) {
-  const product = await getProduct(Number(params.id));
+  const product = await getCachedProductTitle(
+    Number(params.id),
+  );
   return {
     title: product?.title,
   };
@@ -50,7 +77,7 @@ export default async function ProductDetail({
   const id = Number(params.id);
   if (isNaN(id)) return notFound();
 
-  const product = await getProduct(id);
+  const product = await getCachedProduct(id);
   if (!product) return notFound();
 
   const isOwner = await getIsOwner(product.userId);
@@ -119,5 +146,16 @@ export default async function ProductDetail({
       </div>
     </div>
   );
+}
+
+export async function generateStaticParams() {
+  const products = await db.product.findMany({
+    select: {
+      id: true,
+    },
+  });
+  return products.map((product) => ({
+    id: product.id + '',
+  }));
 }
 
