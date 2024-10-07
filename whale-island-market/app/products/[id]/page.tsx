@@ -8,10 +8,10 @@ import Image from 'next/image';
 import { unstable_cache as nextCache } from 'next/cache';
 
 async function getIsOwner(userId: number) {
-  // const session = await getSession();
-  // if (session.id) {
-  //   return session.id === userId;
-  // }
+  const session = await getSession();
+  if (session.id) {
+    return session.id === userId;
+  }
   return false;
 }
 
@@ -130,11 +130,24 @@ export default async function ProductDetail({
           {formatToWon(product.price)}원
         </span>
         {isOwner ? (
-          <form action={handleDelete}>
-            <button className="bg-red-500 px-5 py-2 rounded-md text-white font-semibold">
-              판매 내리기
-            </button>
-          </form>
+          <div className="flex gap-2">
+            <form action={handleDelete}>
+              <button
+                className="bg-red-500 px-5 py-2 rounded-md
+               text-white font-semibold hover:bg-red-600 transition-all"
+              >
+                판매 내리기
+              </button>
+            </form>
+            <Link href={`/products/edit/${product.id}`}>
+              <button
+                className="bg-sky-500 px-5 py-2 rounded-md
+               text-white font-semibold hover:bg-sky-600 transition-all"
+              >
+                수정하기
+              </button>
+            </Link>
+          </div>
         ) : (
           <Link
             className="bg-green-600 px-5 py-2 rounded-md text-white font-semibold"
