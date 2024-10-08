@@ -37,13 +37,21 @@ export async function editProduct(
     price: formData.get('price'),
     description: formData.get('description'),
   };
+  const product = await getProduct(
+    Number(formData.get('id')),
+  );
+
   if (data.photo instanceof File) {
-    const photoData = await data.photo.arrayBuffer();
-    await fs.appendFile(
-      `./public/${data.photo.name}`,
-      Buffer.from(photoData),
-    );
-    data.photo = `/${data.photo.name}`;
+    if (data.photo.name !== 'undefined') {
+      const photoData = await data.photo.arrayBuffer();
+      await fs.appendFile(
+        `./public/${data.photo.name}`,
+        Buffer.from(photoData),
+      );
+      data.photo = `/${data.photo.name}`;
+    } else {
+      data.photo = `${product?.photo}`;
+    }
   }
   const result = productSchema.safeParse(data);
   console.log(result.error);
