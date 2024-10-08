@@ -5,6 +5,7 @@ import {
   HandThumbUpIcon,
 } from '@heroicons/react/16/solid';
 import { formatToTimeAgo } from '../../../lib/utils';
+import { revalidateTag } from 'next/cache';
 
 async function getPosts() {
   const posts = await db.post.findMany({
