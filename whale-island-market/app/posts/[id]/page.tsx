@@ -88,18 +88,29 @@ async function getComments(postId: number) {
     where: {
       postId,
     },
-
-    include: {
+    select: {
+      id: true,
+      payload: true,
+      userId: true,
+      created_at: true,
       user: {
         select: {
-          username: true,
           avatar: true,
+          username: true,
         },
       },
     },
   });
   return comments;
 }
+
+const cachedComments = unstable_cache(
+  getComments,
+  ['post-comments'],
+  {
+    tags: ['post-comments'],
+  },
+);
 
 export type CommentsType = Prisma.PromiseReturnType<
   typeof getComments
@@ -123,7 +134,7 @@ export default async function PostDetail({
     id,
     session.id,
   );
-  const comments = await getComments(id);
+  const comments = await cachedComments(id);
   console.log(comments);
 
   return (
@@ -170,7 +181,7 @@ export default async function PostDetail({
         />
       </div>
       <div>
-        <CommentsList comments={comments} />
+        <CommentsList postId={id} comments={comments} />
       </div>
     </div>
   );

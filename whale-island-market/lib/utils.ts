@@ -8,9 +8,9 @@ export function formatToTimeAgo(date: string) {
 }
 
 export function formatDate(date: Date) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
+  const year = new Date(date).getFullYear();
+  const month = new Date(date).getMonth() + 1;
+  const day = new Date(date).getDate();
   return `${year}년 ${month}월 ${day}일`;
 }
 
