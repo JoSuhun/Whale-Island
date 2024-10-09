@@ -92,6 +92,29 @@ export default async function ProductDetail({
     redirect('/home');
   };
 
+  const createChatRoom = async () => {
+    'use server';
+    const session = await getSession();
+    const room = await db.chatRoom.create({
+      data: {
+        users: {
+          connect: [
+            {
+              id: product.userId,
+            },
+            {
+              id: session.id,
+            },
+          ],
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    redirect(`/chats/${room.id}`);
+  };
+
   return (
     <div>
       <div className="relative aspect-square">
@@ -149,12 +172,11 @@ export default async function ProductDetail({
             </Link>
           </div>
         ) : (
-          <Link
-            className="bg-green-600 px-5 py-2 rounded-md text-white font-semibold"
-            href={``}
-          >
-            채팅하기
-          </Link>
+          <form action={createChatRoom}>
+            <button className="bg-green-600 px-5 py-2 rounded-md text-white font-semibold">
+              채팅하기
+            </button>
+          </form>
         )}
       </div>
     </div>

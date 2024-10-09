@@ -4,12 +4,10 @@ import Image from 'next/image';
 import { formatToTimeAgo } from '../../../lib/utils';
 import {
   EyeIcon,
-  HandThumbUpIcon,
   UserIcon,
 } from '@heroicons/react/24/solid';
-import { HandThumbUpIcon as OutlineHandThumbUpIcon } from '@heroicons/react/24/outline';
 import getSession from '../../../lib/session';
-import { revalidateTag, unstable_cache } from 'next/cache';
+import { unstable_cache } from 'next/cache';
 import LikeBtn from '../../../components/like-btn';
 import { Prisma } from '@prisma/client';
 import CommentsList from '../../../components/comments-list';
