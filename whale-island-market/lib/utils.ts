@@ -7,6 +7,13 @@ export function formatToTimeAgo(date: string) {
   return formatter.format(diff, 'days');
 }
 
+export function formatDate(date: Date) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${year}년 ${month}월 ${day}일`;
+}
+
 export function formatToWon(price: number) {
   return price.toLocaleString('ko-KR');
 }

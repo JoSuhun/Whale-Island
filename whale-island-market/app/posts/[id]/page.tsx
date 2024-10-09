@@ -11,6 +11,8 @@ import { HandThumbUpIcon as OutlineHandThumbUpIcon } from '@heroicons/react/24/o
 import getSession from '../../../lib/session';
 import { revalidateTag, unstable_cache } from 'next/cache';
 import LikeBtn from '../../../components/like-btn';
+import { Prisma } from '@prisma/client';
+import CommentsList from '../../../components/comments-list';
 
 async function getPost(id: number) {
   try {
@@ -81,6 +83,28 @@ async function cachedLikeStatus(
   return cachedOperation(postId);
 }
 
+async function getComments(postId: number) {
+  const comments = await db.comment.findMany({
+    where: {
+      postId,
+    },
+
+    include: {
+      user: {
+        select: {
+          username: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+  return comments;
+}
+
+export type CommentsType = Prisma.PromiseReturnType<
+  typeof getComments
+>;
+
 export default async function PostDetail({
   params,
 }: {
@@ -99,6 +123,8 @@ export default async function PostDetail({
     id,
     session.id,
   );
+  const comments = await getComments(id);
+  console.log(comments);
 
   return (
     <div className="p-5 text-neutral-700">
@@ -142,6 +168,9 @@ export default async function PostDetail({
           likeCount={likeCount}
           postId={id}
         />
+      </div>
+      <div>
+        <CommentsList comments={comments} />
       </div>
     </div>
   );
