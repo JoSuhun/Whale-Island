@@ -135,7 +135,6 @@ export default async function PostDetail({
     session.id,
   );
   const comments = await cachedComments(id);
-  console.log(comments);
 
   return (
     <div className="p-5 text-neutral-700">
@@ -181,7 +180,11 @@ export default async function PostDetail({
         />
       </div>
       <div>
-        <CommentsList postId={id} comments={comments} />
+        <CommentsList
+          userId={session.id}
+          postId={id}
+          comments={comments}
+        />
       </div>
     </div>
   );

@@ -2,11 +2,17 @@
 import Image from 'next/image';
 import { CommentsType } from '../app/posts/[id]/page';
 import { formatDate } from '../lib/utils';
-import { UserIcon } from '@heroicons/react/16/solid';
+import {
+  TrashIcon,
+  UserIcon,
+} from '@heroicons/react/16/solid';
 import { useOptimistic, useRef } from 'react';
 import getSession from '../lib/session';
 import { useFormState } from 'react-dom';
-import { uploadComment } from '../app/posts/[id]/actions';
+import {
+  deleteComment,
+  uploadComment,
+} from '../app/posts/[id]/actions';
 
 interface CommentsProps {
   payload: string;
@@ -22,9 +28,11 @@ interface CommentsProps {
 export default function CommentsList({
   comments,
   postId,
+  userId,
 }: {
   comments: CommentsProps[];
   postId: number;
+  userId: number;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -46,7 +54,7 @@ export default function CommentsList({
       created_at: new Date(),
       userId: 0,
       user: {
-        username: '..',
+        username: ' ',
         avatar: null,
       },
     };
@@ -62,10 +70,15 @@ export default function CommentsList({
     null,
   );
 
+  const onDelete = async (id: number) => {
+    await deleteComment(id);
+  };
+
   return (
     <div>
       <form ref={formRef} action={action}>
         <input
+          maxLength={25}
           id="payload"
           name="payload"
           type="text"
@@ -75,44 +88,59 @@ export default function CommentsList({
              placeholder:text-neutral-400 mt-3 text-sm"
         />
       </form>
-      <div
-        className="bg-neutral-200 flex flex-col gap-3 p-2 mt-2
+      {comments.length > 0 && (
+        <div
+          className="bg-neutral-200 flex flex-col gap-4 p-2 mt-2
      border-t-[1px] rounded-md text-sm"
-      >
-        {optimisticState.map((comment, idx) => (
-          <div
-            key={idx}
-            className="flex items-center justify-between"
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className="size-7 overflow-hidden rounded-full
+        >
+          {optimisticState.map((comment, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="size-7 overflow-hidden rounded-full
           p-[2px] bg-neutral-100 text-neutral-500"
-              >
-                {comment.user.avatar !== null ? (
-                  <Image
-                    width={28}
-                    height={28}
-                    className="size-7 rounded-full"
-                    src={comment.user.avatar!}
-                    alt={comment.user.username}
-                  />
-                ) : (
-                  <UserIcon />
-                )}
+                >
+                  {comment.user.avatar !== null ? (
+                    <Image
+                      width={28}
+                      height={28}
+                      className="size-7 rounded-full"
+                      src={comment.user.avatar!}
+                      alt={comment.user.username}
+                    />
+                  ) : (
+                    <UserIcon />
+                  )}
+                </div>
+                <div className="font-semibold min-w-max">
+                  {comment.user.username}
+                </div>
+                <div className="border-l-[1px] border-neutral-400 px-2">
+                  {comment.payload}
+                </div>
               </div>
-              <div className="font-semibold border-r-[1px] pr-2 border-neutral-400">
-                {comment.user.username}
-              </div>
-              <div>{comment.payload}</div>
-            </div>
 
-            <div className="text-xs text-neutral-500">
-              {formatDate(comment.created_at as Date)}
+              <div className="flex items-center gap-1">
+                <div className="text-xs text-neutral-500 min-w-max">
+                  {formatDate(comment.created_at as Date)}
+                </div>
+                {userId === comment.userId ? (
+                  <div
+                    className="size-5 cursor-pointer text-neutral-500
+                 hover:-translate-y-[1px] hover:text-neutral-600 transition-all"
+                    onClick={() => onDelete(comment.id)}
+                  >
+                    <TrashIcon />
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -54,7 +54,6 @@ export async function editProduct(
     }
   }
   const result = productSchema.safeParse(data);
-  console.log(result.error);
   if (!result.success) {
     return result.error.flatten();
   } else {

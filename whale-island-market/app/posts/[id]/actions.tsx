@@ -75,3 +75,16 @@ export const uploadComment = async (
   }
 };
 
+export const deleteComment = async (id: number) => {
+  try {
+    await db.comment.delete({
+      where: {
+        id,
+      },
+    });
+    revalidateTag('post-comments');
+  } catch (e) {
+    return;
+  }
+};
+
