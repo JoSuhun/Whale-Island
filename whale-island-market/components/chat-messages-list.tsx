@@ -11,6 +11,7 @@ import {
   ArrowUpCircleIcon,
   UserIcon,
 } from '@heroicons/react/16/solid';
+import { saveMessages } from '../app/chats/[id]/actions';
 
 const SUPABASE_PUBLIC_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpY3ZrZ2R1bXlka3dpaHp0eWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg1MjU4MTMsImV4cCI6MjA0NDEwMTgxM30.Ia7EVMzu6su4qKxii9sj-tYexin6rRjtgEFcPlFPrYY';
@@ -22,11 +23,15 @@ interface ChatMessagesListProps {
   initialMessages: InitialChatMessages;
   userId: number;
   chatRoomId: string;
+  username: string;
+  avatar: string | null;
 }
 export default function ChatMessagesList({
   initialMessages,
   userId,
   chatRoomId,
+  username,
+  avatar,
 }: ChatMessagesListProps) {
   const [messages, setMessages] = useState(initialMessages);
   const [message, setMessage] = useState('');
@@ -40,7 +45,7 @@ export default function ChatMessagesList({
     } = event;
     setMessage(value);
   };
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setMessages((prevMsgs) => [
       ...prevMsgs,
@@ -58,8 +63,18 @@ export default function ChatMessagesList({
     channel.current?.send({
       type: 'broadcast',
       event: 'message',
-      payload: { message },
+      payload: {
+        id: Date.now(),
+        payload: message,
+        created_at: new Date(),
+        userId,
+        user: {
+          username,
+          avatar,
+        },
+      },
     });
+    await saveMessages(message, chatRoomId);
     setMessage('');
   };
 
@@ -71,7 +86,7 @@ export default function ChatMessagesList({
     channel.current = client.channel(`room-${chatRoomId}`);
     channel.current
       .on('broadcast', { event: 'message' }, (payload) => {
-        console.log(payload);
+        setMessages((prev) => [...prev, payload.payload]);
       })
       .subscribe();
 
