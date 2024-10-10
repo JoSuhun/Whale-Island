@@ -1,21 +1,87 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { InitialChatMessages } from '../app/chats/[id]/page';
 import { formatToTimeAgo } from '../lib/utils';
 import Image from 'next/image';
-import { UserIcon } from '@heroicons/react/16/solid';
+import {
+  createClient,
+  RealtimeChannel,
+} from '../node_modules/@supabase/supabase-js/dist/module/index';
+import {
+  ArrowUpCircleIcon,
+  UserIcon,
+} from '@heroicons/react/16/solid';
+
+const SUPABASE_PUBLIC_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpY3ZrZ2R1bXlka3dpaHp0eWtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg1MjU4MTMsImV4cCI6MjA0NDEwMTgxM30.Ia7EVMzu6su4qKxii9sj-tYexin6rRjtgEFcPlFPrYY';
+
+const SUPABASE_URL =
+  'https://eicvkgdumydkwihztykq.supabase.co';
 
 interface ChatMessagesListProps {
   initialMessages: InitialChatMessages;
   userId: number;
+  chatRoomId: string;
 }
 export default function ChatMessagesList({
   initialMessages,
   userId,
+  chatRoomId,
 }: ChatMessagesListProps) {
   const [messages, setMessages] = useState(initialMessages);
+  const [message, setMessage] = useState('');
+  const channel = useRef<RealtimeChannel>();
+
+  const onChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const {
+      target: { value },
+    } = event;
+    setMessage(value);
+  };
+  const onSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setMessages((prevMsgs) => [
+      ...prevMsgs,
+      {
+        id: Date.now(),
+        payload: message,
+        created_at: new Date(),
+        userId,
+        user: {
+          username: ' ',
+          avatar: null,
+        },
+      },
+    ]);
+    channel.current?.send({
+      type: 'broadcast',
+      event: 'message',
+      payload: { message },
+    });
+    setMessage('');
+  };
+
+  useEffect(() => {
+    const client = createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLIC_KEY,
+    );
+    channel.current = client.channel(`room-${chatRoomId}`);
+    channel.current
+      .on('broadcast', { event: 'message' }, (payload) => {
+        console.log(payload);
+      })
+      .subscribe();
+
+    return () => {
+      channel.current?.unsubscribe();
+    };
+  }, [chatRoomId]);
+
   return (
-    <div className="p-5 flex flex-col gap-5 min-h-screen justify-end">
+    <div className="p-5 flex flex-col gap-3 min-h-screen justify-end">
       {messages.map((message) => (
         <div
           key={message.id}
@@ -62,6 +128,28 @@ export default function ChatMessagesList({
           </div>
         </div>
       ))}
+      <form
+        className="flex justify-between border-neutral-400 border rounded-full
+        focus-within:border-neutral-500 transition-colors"
+        onSubmit={onSubmit}
+      >
+        <input
+          required
+          onChange={onChange}
+          value={message}
+          className="bg-transparent rounded-full w-full h-10 focus:outline-none
+           px-4 transition focus:ring-0 border-none placeholder:text-neutral-400"
+          type="text"
+          name="message"
+          placeholder="새로운 메세지 . . ."
+        />
+        <button className="">
+          <ArrowUpCircleIcon
+            className="size-10 text-green-600 transition-colors
+           hover:text-green-700"
+          />
+        </button>
+      </form>
     </div>
   );
 }
